@@ -136,6 +136,9 @@ class Message(Object, Update):
         has_protected_content (``bool``, *optional*):
             True, if the message can't be forwarded.
 
+        has_media_spoiler (``bool``, *optional*):
+            True, if the message media is covered by a spoiler animation.
+
         text (``str``, *optional*):
             For text messages, the actual UTF-8 text of the message, 0-4096 characters.
             If the message contains entities (bold, italic, ...) you can access *text.markdown* or
@@ -332,6 +335,7 @@ class Message(Object, Update):
         media_group_id: str = None,
         author_signature: str = None,
         has_protected_content: bool = None,
+        has_media_spoiler: bool = None,
         text: Str = None,
         entities: List["types.MessageEntity"] = None,
         caption_entities: List["types.MessageEntity"] = None,
@@ -364,7 +368,7 @@ class Message(Object, Update):
         pinned_message: "Message" = None,
         game_high_score: int = None,
         views: int = None,
-	forwards: int = None,
+        forwards: int = None,
         via_bot: "types.User" = None,
         outgoing: bool = None,
         matches: List[Match] = None,
@@ -408,6 +412,7 @@ class Message(Object, Update):
         self.media_group_id = media_group_id
         self.author_signature = author_signature
         self.has_protected_content = has_protected_content
+        self.has_media_spoiler = has_media_spoiler
         self.text = text
         self.entities = entities
         self.caption_entities = caption_entities
@@ -658,11 +663,13 @@ class Message(Object, Update):
 
             media = message.media
             media_type = None
+            has_media_spoiler = None
 
             if media:
                 if isinstance(media, raw.types.MessageMediaPhoto):
                     photo = types.Photo._parse(client, media.photo, media.ttl_seconds)
                     media_type = enums.MessageMediaType.PHOTO
+                    has_media_spoiler = media.spoiler
                 elif isinstance(media, raw.types.MessageMediaGeo):
                     location = types.Location._parse(client, media.geo)
                     media_type = enums.MessageMediaType.LOCATION
@@ -687,19 +694,11 @@ class Message(Object, Update):
                             ), "file_name", None
                         )
 
-                        if raw.types.DocumentAttributeAudio in attributes:
-                            audio_attributes = attributes[raw.types.DocumentAttributeAudio]
-
-                            if audio_attributes.voice:
-                                voice = types.Voice._parse(client, doc, audio_attributes)
-                                media_type = enums.MessageMediaType.VOICE
-                            else:
-                                audio = types.Audio._parse(client, doc, audio_attributes, file_name)
-                                media_type = enums.MessageMediaType.AUDIO
-                        elif raw.types.DocumentAttributeAnimated in attributes:
+                        if raw.types.DocumentAttributeAnimated in attributes:
                             video_attributes = attributes.get(raw.types.DocumentAttributeVideo, None)
                             animation = types.Animation._parse(client, doc, video_attributes, file_name)
                             media_type = enums.MessageMediaType.ANIMATION
+                            has_media_spoiler = media.spoiler
                         elif raw.types.DocumentAttributeSticker in attributes:
                             sticker = await types.Sticker._parse(client, doc, attributes)
                             media_type = enums.MessageMediaType.STICKER
@@ -712,6 +711,16 @@ class Message(Object, Update):
                             else:
                                 video = types.Video._parse(client, doc, video_attributes, file_name, media.ttl_seconds)
                                 media_type = enums.MessageMediaType.VIDEO
+                                has_media_spoiler = media.spoiler
+                        elif raw.types.DocumentAttributeAudio in attributes:
+                            audio_attributes = attributes[raw.types.DocumentAttributeAudio]
+
+                            if audio_attributes.voice:
+                                voice = types.Voice._parse(client, doc, audio_attributes)
+                                media_type = enums.MessageMediaType.VOICE
+                            else:
+                                audio = types.Audio._parse(client, doc, audio_attributes, file_name)
+                                media_type = enums.MessageMediaType.AUDIO
                         else:
                             document = types.Document._parse(client, doc, file_name)
                             media_type = enums.MessageMediaType.DOCUMENT
@@ -777,6 +786,7 @@ class Message(Object, Update):
                 ),
                 author_signature=message.post_author,
                 has_protected_content=message.noforwards,
+                has_media_spoiler=has_media_spoiler,
                 forward_from=forward_from,
                 forward_sender_name=forward_sender_name,
                 forward_from_chat=forward_from_chat,
@@ -3045,13 +3055,13 @@ class Message(Object, Update):
             RPCError: In case of a Telegram RPC error.
         """
         if self.service:
-            log.warning(f"Service messages cannot be copied. "
-                        f"chat_id: {self.chat.id}, message_id: {self.id}")
+            log.warning("Service messages cannot be copied. chat_id: %s, message_id: %s",
+                        self.chat.id, self.id)
         elif self.game and not await self._client.storage.is_bot():
-            log.warning(f"Users cannot send messages with Game media type. "
-                        f"chat_id: {self.chat.id}, message_id: {self.id}")
+            log.warning("Users cannot send messages with Game media type. chat_id: %s, message_id: %s",
+                        self.chat.id, self.id)
         elif self.empty:
-            log.warning(f"Empty messages cannot be copied. ")
+            log.warning("Empty messages cannot be copied.")
         elif self.text:
             return await self._client.send_message(
                 chat_id,
