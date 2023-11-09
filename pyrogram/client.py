@@ -47,7 +47,7 @@ from pyrogram.errors import (
     BadRequest
 )
 from pyrogram.handlers.handler import Handler
-from pyrogram.methods import Methods
+from pyrogram.methods import Methods, get_session
 from pyrogram.session import Auth, Session
 from pyrogram.storage import FileStorage, MemoryStorage
 from pyrogram.types import User, TermsOfService
@@ -862,31 +862,8 @@ class Client(Methods):
 
             dc_id = file_id.dc_id
 
-            session = Session(
-                self, dc_id,
-                await Auth(self, dc_id, await self.storage.test_mode()).create()
-                if dc_id != await self.storage.dc_id()
-                else await self.storage.auth_key(),
-                await self.storage.test_mode(),
-                is_media=True
-            )
-
             try:
-                await session.start()
-
-                if dc_id != await self.storage.dc_id():
-                    exported_auth = await self.invoke(
-                        raw.functions.auth.ExportAuthorization(
-                            dc_id=dc_id
-                        )
-                    )
-
-                    await session.invoke(
-                        raw.functions.auth.ImportAuthorization(
-                            id=exported_auth.id,
-                            bytes=exported_auth.bytes
-                        )
-                    )
+                session = await get_session(self, dc_id)
 
                 r = await session.invoke(
                     raw.functions.upload.GetFile(
@@ -1019,8 +996,6 @@ class Client(Methods):
                 raise
             except Exception as e:
                 log.exception(e)
-            finally:
-                await session.stop()
 
     def guess_mime_type(self, filename: str) -> Optional[str]:
         return self.mimetypes.guess_type(filename)[0]
