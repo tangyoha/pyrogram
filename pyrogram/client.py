@@ -32,7 +32,7 @@ from importlib import import_module
 from io import StringIO, BytesIO
 from mimetypes import MimeTypes
 from pathlib import Path
-from typing import Union, List, Optional, Callable, AsyncGenerator, Type
+from typing import Union, List, Optional, Callable, AsyncGenerator
 
 import pyrogram
 from pyrogram import __version__, __license__
@@ -54,8 +54,6 @@ from pyrogram.session import Auth, Session
 from pyrogram.storage import Storage, FileStorage, MemoryStorage
 from pyrogram.types import User, TermsOfService
 from pyrogram.utils import ainput
-from .connection import Connection
-from .connection.transport import TCP, TCPAbridged
 from .dispatcher import Dispatcher
 from .file_id import FileId, FileType, ThumbnailSource
 from .mime_types import mime_types
@@ -267,9 +265,7 @@ class Client(Methods):
         max_message_cache_size: int = MAX_MESSAGE_CACHE_SIZE,
         storage_engine: Optional[Storage] = None,
         client_platform: "enums.ClientPlatform" = enums.ClientPlatform.OTHER,
-        init_connection_params: Optional["raw.base.JSONValue"] = None,
-        connection_factory: Type[Connection] = Connection,
-        protocol_factory: Type[TCP] = TCPAbridged
+        init_connection_params: Optional["raw.base.JSONValue"] = None
     ):
         super().__init__()
 
@@ -304,8 +300,6 @@ class Client(Methods):
         self.max_message_cache_size = max_message_cache_size
         self.client_platform = client_platform
         self.init_connection_params = init_connection_params
-        self.connection_factory = connection_factory
-        self.protocol_factory = protocol_factory
 
         self.executor = ThreadPoolExecutor(self.workers, thread_name_prefix="Handler")
 

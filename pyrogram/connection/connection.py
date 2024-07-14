@@ -18,7 +18,7 @@
 
 import asyncio
 import logging
-from typing import Optional, Type
+from typing import Optional
 
 from .transport import TCP, TCPAbridged
 from ..session.internals import DataCenter
@@ -29,28 +29,19 @@ log = logging.getLogger(__name__)
 class Connection:
     MAX_CONNECTION_ATTEMPTS = 3
 
-    def __init__(
-        self,
-        dc_id: int,
-        test_mode: bool,
-        ipv6: bool,
-        proxy: dict,
-        media: bool = False,
-        protocol_factory: Type[TCP] = TCPAbridged
-    ) -> None:
+    def __init__(self, dc_id: int, test_mode: bool, ipv6: bool, proxy: dict, media: bool = False):
         self.dc_id = dc_id
         self.test_mode = test_mode
         self.ipv6 = ipv6
         self.proxy = proxy
         self.media = media
-        self.protocol_factory = protocol_factory
 
         self.address = DataCenter(dc_id, test_mode, ipv6, media)
-        self.protocol: Optional[TCP] = None
+        self.protocol: TCP = None
 
-    async def connect(self) -> None:
+    async def connect(self):
         for i in range(Connection.MAX_CONNECTION_ATTEMPTS):
-            self.protocol = self.protocol_factory(ipv6=self.ipv6, proxy=self.proxy)
+            self.protocol = TCPAbridged(self.ipv6, self.proxy)
 
             try:
                 log.info("Connecting...")
@@ -70,11 +61,11 @@ class Connection:
             log.warning("Connection failed! Trying again...")
             raise ConnectionError
 
-    async def close(self) -> None:
+    async def close(self):
         await self.protocol.close()
         log.info("Disconnected")
 
-    async def send(self, data: bytes) -> None:
+    async def send(self, data: bytes):
         await self.protocol.send(data)
 
     async def recv(self) -> Optional[bytes]:
