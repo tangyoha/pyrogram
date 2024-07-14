@@ -31,15 +31,14 @@ async def get_session(client: "pyrogram.Client", dc_id: int):
         if client.media_sessions.get(dc_id):
             return client.media_sessions[dc_id]
 
-        auth_key = (
-            await Auth(client, dc_id, await client.storage.test_mode()).create()
-            if dc_id != await client.storage.dc_id()
-            else await client.storage.auth_key())
-
         session = client.media_sessions[dc_id] = Session(
-                        client, dc_id, auth_key, await client.storage.test_mode(), is_media=True)
+            client, dc_id,
+            await Auth(client, dc_id, await client.storage.test_mode()).create(),
+            await client.storage.test_mode(), is_media=True
+        )
 
         await session.start()
+
         for _ in range(3):
             exported_auth = await client.invoke(
                 raw.functions.auth.ExportAuthorization(
