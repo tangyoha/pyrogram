@@ -55,15 +55,12 @@ class TCP:
         self.lock = asyncio.Lock()
         self.loop = asyncio.get_event_loop()
 
-    async def _connect_via_proxy(
-        self,
-        destination: Tuple[str, int]
-    ) -> None:
+    async def _connect_via_proxy(self, destination: Tuple[str, int]) -> None:
         scheme = self.proxy.get("scheme")
         if scheme is None:
             raise ValueError("No scheme specified")
 
-        proxy_type = proxy_type_by_scheme.get(scheme.upper())
+        proxy_type = getattr(socks, scheme.upper(), None)
         if proxy_type is None:
             raise ValueError(f"Unknown proxy type {scheme}")
 
@@ -91,16 +88,12 @@ class TCP:
         )
         sock.settimeout(TCP.TIMEOUT)
 
-        await self.loop.sock_connect(
-            sock=sock,
-            address=destination
-        )
+        with ThreadPoolExecutor(1) as executor:
+            await self.loop.run_in_executor(executor, sock.connect, destination)
 
         sock.setblocking(False)
 
-        self.reader, self.writer = await asyncio.open_connection(
-            sock=sock
-        )
+        self.reader, self.writer = await asyncio.open_connection(sock=sock)
 
     async def _connect_via_direct(
         self,
