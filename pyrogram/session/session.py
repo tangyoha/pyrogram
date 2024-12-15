@@ -142,7 +142,7 @@ class Session:
                 log.info("Session initialized: Layer %s", layer)
                 log.info("Device: %s - %s", self.client.device_model, self.client.app_version)
                 log.info("System: %s (%s)", self.client.system_version, self.client.lang_code)
-            except AuthKeyDuplicated as e:
+            except (AuthKeyDuplicated, Unauthorized) as e:
                 await self.stop()
                 raise e
             except (OSError, RPCError):
@@ -187,14 +187,19 @@ class Session:
         await self.start()
 
     async def handle_packet(self, packet):
-        data = await self.loop.run_in_executor(
-            pyrogram.crypto_executor,
-            mtproto.unpack,
-            BytesIO(packet),
-            self.session_id,
-            self.auth_key,
-            self.auth_key_id
-        )
+        try:
+            data = await self.loop.run_in_executor(
+                pyrogram.crypto_executor,
+                mtproto.unpack,
+                BytesIO(packet),
+                self.session_id,
+                self.auth_key,
+                self.auth_key_id
+            )
+        except ValueError as e:
+            log.debug(e)
+            self.loop.create_task(self.restart())
+            return
 
         messages = (
             data.body.messages

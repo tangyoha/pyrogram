@@ -88,7 +88,7 @@ class TCP:
         )
         sock.settimeout(TCP.TIMEOUT)
 
-        with ThreadPoolExecutor(1) as executor:
+        with ThreadPoolExecutor() as executor:
             await self.loop.run_in_executor(executor, sock.connect, destination)
 
         sock.setblocking(False)

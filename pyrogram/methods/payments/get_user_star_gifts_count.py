@@ -16,48 +16,49 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import List, Union
+import logging
+from typing import Union
 
 import pyrogram
-from pyrogram import raw, types
+from pyrogram import raw
+
+log = logging.getLogger(__name__)
 
 
-class ReadStories:
-    async def read_stories(
+class GetUserStarGiftsCount:
+    async def get_user_star_gifts_count(
         self: "pyrogram.Client",
-        chat_id: Union[int, str],
-        max_id: int = 0,
-    ) -> List[int]:
-        """Read stories.
+        chat_id: Union[int, str]
+    ) -> int:
+        """Get the total count of star gifts of specified user.
 
         .. include:: /_includes/usable-by/users.rst
 
         Parameters:
             chat_id (``int`` | ``str``):
                 Unique identifier (int) or username (str) of the target chat.
+                For your personal cloud (Saved Messages) you can simply use "me" or "self".
                 For a contact that exists in your Telegram address book you can use his phone number (str).
 
-            max_id (``int``, *optional*):
-                The id of the last story you want to mark as read; all the stories before this one will be marked as
-                read as well. Defaults to 0 (mark every unread message as read).
-
         Returns:
-            List of ``int``: On success, a list of read stories is returned.
+            ``int``: On success, the star gifts count is returned.
 
         Example:
             .. code-block:: python
 
-                # Read all stories
-                await app.read_stories(chat_id)
-
-                # Mark stories as read only up to the given story id
-                await app.read_stories(chat_id, 123)
+                await app.get_user_star_gifts_count(chat_id)
         """
+        peer = await self.resolve_peer(chat_id)
+
+        if not isinstance(peer, (raw.types.InputPeerUser, raw.types.InputPeerSelf)):
+            raise ValueError("chat_id must belong to a user.")
+
         r = await self.invoke(
-            raw.functions.stories.ReadStories(
-                peer=await self.resolve_peer(chat_id),
-                max_id=max_id or (1 << 31) - 1
+            raw.functions.payments.GetUserStarGifts(
+                user_id=peer,
+                offset="",
+                limit=1
             )
         )
 
-        return types.List(r)
+        return r.count

@@ -58,13 +58,13 @@ class ResolvePeer:
         if not self.is_connected:
             raise ConnectionError("Client has not been started yet")
 
+        if peer_id in ("self", "me"):
+            return raw.types.InputPeerSelf()
+
         try:
             return await self.storage.get_peer_by_id(peer_id)
         except KeyError:
             if isinstance(peer_id, str):
-                if peer_id in ("self", "me"):
-                    return raw.types.InputPeerSelf()
-
                 peer_id = re.sub(r"[@+\s]", "", peer_id.lower())
 
                 try:
@@ -73,11 +73,16 @@ class ResolvePeer:
                     try:
                         return await self.storage.get_peer_by_username(peer_id)
                     except KeyError:
-                        await self.invoke(
+                        r = await self.invoke(
                             raw.functions.contacts.ResolveUsername(
                                 username=peer_id
                             )
                         )
+
+                        if isinstance(r.peer, raw.types.PeerUser):
+                            return await self.storage.get_peer_by_id(r.peer.user_id)
+                        elif isinstance(r.peer, raw.types.PeerChannel):
+                            return await self.storage.get_peer_by_id(utils.get_channel_id(r.peer.channel_id))
 
                         return await self.storage.get_peer_by_username(peer_id)
                 else:
@@ -118,7 +123,6 @@ class ResolvePeer:
                         ]
                     )
                 )
-
             try:
                 return await self.storage.get_peer_by_id(peer_id)
             except KeyError:

@@ -16,50 +16,42 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Union
-
 import pyrogram
 from pyrogram import raw
+from typing import Union
 
 
-class UpdatePersonalChannel:
-    async def update_personal_channel(
+class PinForumTopic:
+    async def pin_forum_topic(
         self: "pyrogram.Client",
-        chat_id: Union[int, str] = None
+        chat_id: Union[int, str],
+        topic_id: int
     ) -> bool:
-        """Update your personal channel.
+        """Pin a forum topic.
 
         .. include:: /_includes/usable-by/users.rst
 
         Parameters:
             chat_id (``int`` | ``str``):
-                Unique identifier (int) or username (str) of the target user.
-                Use :meth:`~pyrogram.Client.get_personal_channels` to get available channels.
+                Unique identifier (int) or username (str) of the target chat.
+
+            topic_id (``int``):
+                Unique identifier (int) of the target forum topic.
 
         Returns:
-            ``bool``: True on success.
+            ``bool``: On success, True is returned.
 
         Example:
             .. code-block:: python
 
-                # Update your personal channel
-                await app.update_personal_channel(chat_id)
-
-                # Remove personal channel from your profile
-                await app.update_personal_channel()
+                await app.pin_forum_topic(chat_id, topic_id)
         """
-        if chat_id is None:
-            peer = raw.types.InputChannelEmpty()
-        else:
-            peer = await self.resolve_peer(chat_id)
-
-            if not isinstance(peer, raw.types.InputChannel):
-                return False
-
-        return bool(
-            await self.invoke(
-                raw.functions.account.UpdatePersonalChannel(
-                    channel=peer
-                )
+        await self.invoke(
+            raw.functions.channels.UpdatePinnedForumTopic(
+                channel=await self.resolve_peer(chat_id),
+                topic_id=topic_id,
+                pinned=True
             )
         )
+
+        return True

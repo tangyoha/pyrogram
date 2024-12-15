@@ -15,39 +15,30 @@
 #
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
-
-from typing import Union
+from typing import List
 
 import pyrogram
-from pyrogram import raw
+from pyrogram import raw, types
 
 
-class CanSendStory:
-    async def can_send_story(
+class GetStarGifts:
+    async def get_star_gifts(
         self: "pyrogram.Client",
-        chat_id: Union[int, str],
-    ) -> bool:
-        """Can send story
+    ) -> List["types.StarGift"]:
+        """Get all available star gifts that can be sent to other users.
 
-        .. include:: /_includes/usable-by/users.rst
-
-        Parameters:
-            chat_id (``int`` | ``str``):
-                Unique identifier (int) or username (str) of the target chat.
+        .. include:: /_includes/usable-by/users-bots.rst
 
         Returns:
-            ``str``: On success, a bool is returned.
+            List of :obj:`~pyrogram.types.StarGift`: On success, a list of star gifts is returned.
 
         Example:
             .. code-block:: python
 
-                # Check if you can send story to chat id
-                app.can_send_story(chat_id)
+                app.get_star_gifts()
         """
         r = await self.invoke(
-            raw.functions.stories.CanSendStory(
-                peer=await self.resolve_peer(chat_id),
-            )
+            raw.functions.payments.GetStarGifts(hash=0)
         )
 
-        return r
+        return types.List([await types.StarGift._parse(self, gift) for gift in r.gifts])

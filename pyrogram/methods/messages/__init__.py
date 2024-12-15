@@ -18,6 +18,7 @@
 
 from .copy_media_group import CopyMediaGroup
 from .copy_message import CopyMessage
+from .delete_chat_history import DeleteChatHistory
 from .delete_messages import DeleteMessages
 from .download_media import DownloadMedia
 from .edit_inline_caption import EditInlineCaption
@@ -28,6 +29,7 @@ from .edit_message_caption import EditMessageCaption
 from .edit_message_media import EditMessageMedia
 from .edit_message_reply_markup import EditMessageReplyMarkup
 from .edit_message_text import EditMessageText
+from .forward_media_group import ForwardMediaGroup
 from .forward_messages import ForwardMessages
 from .get_available_effects import GetAvailableEffects
 from .get_chat_history import GetChatHistory
@@ -60,6 +62,8 @@ from .send_document import SendDocument
 from .send_location import SendLocation
 from .send_media_group import SendMediaGroup
 from .send_message import SendMessage
+from .send_paid_media import SendPaidMedia
+from .send_paid_reaction import SendPaidReaction
 from .send_photo import SendPhoto
 from .send_poll import SendPoll
 from .send_reaction import SendReaction
@@ -82,6 +86,7 @@ class Messages(
     EditMessageReplyMarkup,
     EditMessageMedia,
     EditMessageText,
+    ForwardMediaGroup,
     ForwardMessages,
     GetAvailableEffects,
     GetMediaGroup,
@@ -96,6 +101,8 @@ class Messages(
     SendLocation,
     SendMediaGroup,
     SendMessage,
+    SendPaidMedia,
+    SendPaidReaction,
     SendPhoto,
     SendSticker,
     SendVenue,
@@ -124,6 +131,7 @@ class Messages(
     SearchMessages,
     SearchGlobal,
     CopyMessage,
+    DeleteChatHistory,
     CopyMediaGroup,
     SearchMessagesCount,
     SearchPosts,

@@ -17,7 +17,6 @@
 #  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-import re
 from typing import List, Union, BinaryIO, Callable
 
 import pyrogram
@@ -47,7 +46,7 @@ class SendStory:
         progress: Callable = None,
         progress_args: tuple = ()
     ) -> "types.Story":
-        """Send new story.
+        """Post new story.
 
         .. include:: /_includes/usable-by/users.rst
 
@@ -100,7 +99,7 @@ class SendStory:
                 and :obj:`~pyrogram.enums.StoriesPrivacyRules.CONTACTS` only
 
             pinned (``bool``, *optional*):
-                if True, the story will be pinned.
+                If True, the story will be pinned.
                 default to False.
 
             protect_content (``bool``, *optional*):

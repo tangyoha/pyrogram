@@ -35,14 +35,17 @@ from .chat_member import ChatMember
 from .chat_member_updated import ChatMemberUpdated
 from .chat_permissions import ChatPermissions
 from .chat_photo import ChatPhoto
-from .chat_preview import ChatPreview
 from .chat_privileges import ChatPrivileges
 from .chat_reactions import ChatReactions
 from .dialog import Dialog
 from .emoji_status import EmojiStatus
 from .folder import Folder
+from .found_contacts import FoundContacts
 from .group_call_member import GroupCallMember
 from .invite_link_importer import InviteLinkImporter
+from .phone_call_ended import PhoneCallEnded
+from .phone_call_started import PhoneCallStarted
+from .privacy_rule import PrivacyRule
 from .restriction import Restriction
 from .user import User
 from .username import Username
@@ -63,7 +66,6 @@ __all__ = [
     "ChatMember",
     "ChatPermissions",
     "ChatPhoto",
-    "ChatPreview",
     "Dialog",
     "User",
     "Username",
@@ -72,6 +74,9 @@ __all__ = [
     "ChatEventFilter",
     "ChatInviteLink",
     "InviteLinkImporter",
+    "PhoneCallEnded",
+    "PhoneCallStarted",
+    "PrivacyRule",
     "ChatAdminWithInviteLinks",
     "ChatColor",
     "VideoChatStarted",
@@ -84,6 +89,7 @@ __all__ = [
     "ChatJoiner",
     "EmojiStatus",
     "Folder",
+    "FoundContacts",
     "GroupCallMember",
     "ChatReactions"
 ]

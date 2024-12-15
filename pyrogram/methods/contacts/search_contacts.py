@@ -16,42 +16,44 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Union
-
 import pyrogram
 from pyrogram import raw
+from pyrogram import types
 
 
-class HideStories:
-    async def hide_stories(
+class SearchContacts:
+    async def search_contacts(
         self: "pyrogram.Client",
-        chat_id: Union[int, str],
-        hidden: bool = None
-    ) -> bool:
-        """Toggle peer stories hidden
+        query: str,
+        limit: int = 0
+    ):
+        """Returns users or channels found by name substring and auxiliary data.
 
         .. include:: /_includes/usable-by/users.rst
 
         Parameters:
-            chat_id (``int`` | ``str``):
-                Unique identifier (int) or username (str) of the target chat.
-                For your personal cloud (Saved Messages) you can simply use "me" or "self".
-                For a contact that exists in your Telegram address book you can use his phone number (str).
+            query (``str``):
+                Target substring.
+
+            limit (``int``, *optional*):
+                Maximum number of users to be returned.
 
         Returns:
-            ``str``: On success, a bool is returned.
+            :obj:`~pyrogram.types.FoundContacts`: On success, a list of chats is returned.
 
         Example:
             .. code-block:: python
 
-                # Export a story link
-                link = app.hide_stories("me")
+                await app.search_contacts("pyrogram")
         """
+        total = limit or (1 << 31) - 1
+        limit = min(100, total)
+
         r = await self.invoke(
-            raw.functions.stories.TogglePeerStoriesHidden(
-                peer=await self.resolve_peer(chat_id),
-                hidden=hidden
+            raw.functions.contacts.Search(
+                q=query,
+                limit=limit
             )
         )
 
-        return r
+        return types.FoundContacts._parse(self, r)

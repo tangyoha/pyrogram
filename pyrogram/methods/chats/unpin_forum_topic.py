@@ -16,54 +16,42 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import List, Union, Iterable
-
 import pyrogram
 from pyrogram import raw
-from pyrogram import types
+from typing import Union
 
 
-class PinStories:
-    async def pin_stories(
+class UnpinForumTopic:
+    async def unpin_forum_topic(
         self: "pyrogram.Client",
         chat_id: Union[int, str],
-        stories_ids: Union[int, Iterable[int]],
-        pinned: bool = False,
-    ) -> List[int]:
-        """Pin one or more stories in a chat by using stories identifiers.
+        topic_id: int
+    ) -> bool:
+        """Unpin a forum topic.
 
         .. include:: /_includes/usable-by/users.rst
 
         Parameters:
             chat_id (``int`` | ``str``):
                 Unique identifier (int) or username (str) of the target chat.
-                For your personal cloud (Saved Messages) you can simply use "me" or "self".
 
-            stories_ids (``int`` | Iterable of ``int``, *optional*):
-                List of unique identifiers of the target stories.
-
-            pinned (``bool``):
-                If set to ``True``, the stories will be pinned.
+            topic_id (``int``):
+                Unique identifier (int) of the target forum topic.
 
         Returns:
-            List of ``int``: List of pinned stories IDs
+            ``bool``: On success, True is returned.
 
         Example:
             .. code-block:: python
 
-                # Pin a single story
-                await app.pin_stories(chat_id, 123456789, True)
-
+                await app.unpin_forum_topic(chat_id, topic_id)
         """
-        is_iterable = not isinstance(stories_ids, int)
-        stories_ids = list(stories_ids) if is_iterable else [stories_ids]
-
-        r = await self.invoke(
-            raw.functions.stories.TogglePinned(
-                peer=await self.resolve_peer(chat_id),
-                id=stories_ids,
-                pinned=pinned
+        await self.invoke(
+            raw.functions.channels.UpdatePinnedForumTopic(
+                channel=await self.resolve_peer(chat_id),
+                topic_id=topic_id,
+                pinned=False
             )
         )
 
-        return types.List(r)
+        return True
